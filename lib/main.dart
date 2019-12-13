@@ -3,19 +3,20 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:smartgn/Dialog_money.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_database/ui/firebase_animated_list.dart';
 
 main()  {
+
+
 
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
 
-  final databaseReference = FirebaseDatabase.instance.reference();
 
-  //final databaseReference = FirebaseDatabase.instance.reference();
-  // This widget is the root of your application.
 
   @override
   Widget build(BuildContext context) {
@@ -34,14 +35,14 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.red,
       ),
-      home: MyHomePage(title: 'Giulianovars', databaseReference: databaseReference),
+      home: MyHomePage(title: 'Giulianovars'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title, this.databaseReference}) : super(key: key);
-  final databaseReference;
+  MyHomePage({Key key, this.title}) : super(key: key);
+
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
   // how it looks.
@@ -59,7 +60,7 @@ class MyHomePage extends StatefulWidget {
 
 
   @override
-  _MyHomePageState createState() => _MyHomePageState(databaseReference);
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
 class device{
@@ -91,25 +92,117 @@ class _MyHomePageState extends State<MyHomePage> {
   List<device> devices = new List();
   List<app> apps = new List();
 
- final  databaseReference;
- _MyHomePageState(this.databaseReference);
 
 
 
+  DatabaseReference _counterRef;
+  DatabaseReference _messagesRef;
+  String _kTestKey = 'Hello';
+  String _kTestValue = 'world!';
+  DatabaseError _error;
 
-  void createRecord(){
-  //  final databaseReference = FirebaseDatabase.instance.reference();
-    print("asdasdasdas");
-    databaseReference.child("1").set({
-      'title': 'Mastering EJB',
-      'description': 'Programming Guide for J2EE'
+  Future<void> createRecord() async {
+
+
+    final FirebaseApp app = await FirebaseApp.configure(
+      name: 'db2',
+      options: Platform.isIOS
+          ? const FirebaseOptions(
+        googleAppID: '1:297855924061:ios:c6de2b69b03a5be8',
+        gcmSenderID: '297855924061',
+        databaseURL: 'https://flutterfire-cd2f7.firebaseio.com',
+      )
+          : const FirebaseOptions(
+        googleAppID: '1:916071383693:android:8d4565047a06cab0ed98c4',
+        apiKey: 'AIzaSyCuSjNHGXocnZR_RRq1-PRS9zU8FGfnO_c',
+        databaseURL: 'https://giulianovarssmart.firebaseio.com',
+      ),
+    );
+
+    _counterRef = FirebaseDatabase.instance.reference().child('washer').child('openPercent').child('openPercent');
+    final FirebaseDatabase database = FirebaseDatabase(app: app);
+    _messagesRef = database.reference().child('messages');
+  //  database.reference().child('washer').child('openPercent').child('openPercent').once().then((DataSnapshot snapshot) {
+ //     print('Connected to second database and read ${snapshot.value}');
+  //  });
+
+    // Increment counter in transaction.
+
+
+    //изменяет данные
+    final TransactionResult transactionResult =
+    await _counterRef.runTransaction((MutableData mutableData) async {
+      mutableData.value = 100;
+      return mutableData;
     });
-    databaseReference.child("2").set({
-      'title': 'Flutter in Action',
-      'description': 'Complete Programming Guide to learn Flutter'
-    });
+
+    if (transactionResult.committed) {
+      /*
+      _messagesRef.push().set(<String, String>{
+        _kTestKey: '$_kTestValue ${transactionResult.dataSnapshot.value}'
+      });
+      */
+
+    } else {
+      print('Transaction not committed.');
+      if (transactionResult.error != null) {
+        print(transactionResult.error.message);
+      }
+    }
+
+
   }
+  Future<void> createRecord2() async {
 
+
+    final FirebaseApp app = await FirebaseApp.configure(
+      name: 'db2',
+      options: Platform.isIOS
+          ? const FirebaseOptions(
+        googleAppID: '1:297855924061:ios:c6de2b69b03a5be8',
+        gcmSenderID: '297855924061',
+        databaseURL: 'https://flutterfire-cd2f7.firebaseio.com',
+      )
+          : const FirebaseOptions(
+        googleAppID: '1:916071383693:android:8d4565047a06cab0ed98c4',
+        apiKey: 'AIzaSyCuSjNHGXocnZR_RRq1-PRS9zU8FGfnO_c',
+        databaseURL: 'https://giulianovarssmart.firebaseio.com',
+      ),
+    );
+
+    _counterRef = FirebaseDatabase.instance.reference().child('washer').child('openPercent').child('openPercent');
+    final FirebaseDatabase database = FirebaseDatabase(app: app);
+    _messagesRef = database.reference().child('messages');
+    //  database.reference().child('washer').child('openPercent').child('openPercent').once().then((DataSnapshot snapshot) {
+    //     print('Connected to second database and read ${snapshot.value}');
+    //  });
+
+    // Increment counter in transaction.
+
+
+    //изменяет данные
+    final TransactionResult transactionResult =
+    await _counterRef.runTransaction((MutableData mutableData) async {
+      mutableData.value = 0;
+      return mutableData;
+    });
+
+    if (transactionResult.committed) {
+      /*
+      _messagesRef.push().set(<String, String>{
+        _kTestKey: '$_kTestValue ${transactionResult.dataSnapshot.value}'
+      });
+      */
+
+    } else {
+      print('Transaction not committed.');
+      if (transactionResult.error != null) {
+        print(transactionResult.error.message);
+      }
+    }
+
+
+  }
 
   @override
   Future initState() {
@@ -260,7 +353,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   padding: EdgeInsets.all(0),
                                   onPressed: () {
 
-
+                                    createRecord2();
 
 
                                   },
